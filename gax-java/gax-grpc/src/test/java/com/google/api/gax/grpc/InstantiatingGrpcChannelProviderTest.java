@@ -618,6 +618,41 @@ public class InstantiatingGrpcChannelProviderTest extends AbstractMtlsTransportC
     InstantiatingGrpcChannelProvider.LOG.removeHandler(logHandler);
   }
 
+  @Test
+  public void testShouldUseS2AMtlsEndpointEmpty() {
+    InstantiatingGrpcChannelProvider provider =
+        InstantiatingGrpcChannelProvider.newBuilder().build();
+    assertThat(provider.shouldUseS2A()).isFalse();
+  }
+
+  @Test
+  public void testShouldUseS2AEndpointOverride() {
+    InstantiatingGrpcChannelProvider provider =
+        InstantiatingGrpcChannelProvider.newBuilder()
+            .setEndpoint("test.googleapis.com:443")
+            .build();
+    assertThat(provider.shouldUseS2A()).isFalse();
+  }
+
+  @Test
+  public void testShouldUseS2AMtlsEndpointEndpointOverride() {
+    InstantiatingGrpcChannelProvider provider =
+        InstantiatingGrpcChannelProvider.newBuilder()
+            .setMtlsEndpoint("test.mtls.googleapis.com:443")
+            .setEndpoint("test.mtls.googleapis.com:443")
+            .build();
+    assertThat(provider.shouldUseS2A()).isTrue();
+  }
+
+  @Test
+  public void testShouldUseS2A() {
+    InstantiatingGrpcChannelProvider provider =
+        InstantiatingGrpcChannelProvider.newBuilder()
+            .setMtlsEndpoint("test.mtls.googleapis.com:443")
+            .build();
+    assertThat(provider.shouldUseS2A()).isTrue();
+  }
+
   private static class FakeLogHandler extends Handler {
     List<LogRecord> records = new ArrayList<>();
 
