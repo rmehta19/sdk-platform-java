@@ -445,9 +445,14 @@ public final class InstantiatingGrpcChannelProvider implements TransportChannelP
         // DCA, try mTLS with credentials held by the S2A (Secure Session Agent).
         if (isGoogleS2AEnabled() && shouldUseS2A()) {
           S2A s2aUtils = new S2A();
+          String mtlsS2AAddress = s2aUtils.getMtlsS2AAddress();
           String plaintextS2AAddress = s2aUtils.getPlaintextS2AAddress();
-          if (!plaintextS2AAddress.isEmpty()) {
-            channelCredentials = S2AChannelCredentials.createBuilder(plaintextS2AAddress).build();
+          if (!mtlsS2AAddress.isEmpty()) {
+            channelCredentials = MtlsToS2AChannelCredentials.createBuilder(mtlsS2AAddress, "private_key_path", "cert_chain_path", "trust_bundle_path").build();
+          } else {
+            if (!plaintextS2AAddress.isEmpty()) {
+              channelCredentials = S2AChannelCredentials.createBuilder(plaintextS2AAddress).build();
+            }
           }
         }
         if (channelCredentials != null) {
