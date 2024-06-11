@@ -56,6 +56,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.TlsChannelCredentials;
 import io.grpc.alts.GoogleDefaultChannelCredentials;
 import io.grpc.auth.MoreCallCredentials;
+import io.grpc.s2a.MtlsToS2AChannelCredentials;
 import io.grpc.s2a.S2AChannelCredentials;
 import java.io.File;
 import java.io.IOException;
@@ -447,8 +448,15 @@ public final class InstantiatingGrpcChannelProvider implements TransportChannelP
           S2A s2aUtils = new S2A();
           String mtlsS2AAddress = s2aUtils.getMtlsS2AAddress();
           String plaintextS2AAddress = s2aUtils.getPlaintextS2AAddress();
-          if (!mtlsS2AAddress.isEmpty()) {
-            channelCredentials = MtlsToS2AChannelCredentials.createBuilder(mtlsS2AAddress, "private_key_path", "cert_chain_path", "trust_bundle_path").build();
+          if (!mtlsS2AAddress.isEmpty() && isOnComputeEngine()) {
+            channelCredentials =
+                MtlsToS2AChannelCredentials.createBuilder(
+                        mtlsS2AAddress,
+                        "/run/google-mds-mtls/client.key",
+                        "/run/google-mds-mtls/client.key",
+                        "/run/google-mds-mtls/root.crt")
+                    .build()
+                    .build();
           } else {
             if (!plaintextS2AAddress.isEmpty()) {
               channelCredentials = S2AChannelCredentials.createBuilder(plaintextS2AAddress).build();
